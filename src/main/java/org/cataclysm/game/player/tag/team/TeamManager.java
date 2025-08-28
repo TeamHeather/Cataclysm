@@ -18,6 +18,7 @@ public record TeamManager(PlayerData data) {
     }
 
     public Teams getTeam() {
+        if (this.data.getTeam() == null) return Teams.NONE;
         return Teams.valueOf(this.data.getTeam());
     }
 

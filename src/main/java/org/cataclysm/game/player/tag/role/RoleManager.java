@@ -18,7 +18,8 @@ public record RoleManager(PlayerData data) {
     }
 
     public RoleType getRole() {
-        return RoleType.valueOf(this.data.getRoleType());
+        if (this.data.getRoleType() == null) return RoleType.MEMBER;
+        else return RoleType.valueOf(this.data.getRoleType());
     }
 
 }

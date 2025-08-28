@@ -2,6 +2,7 @@ package org.cataclysm.server.tablist;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.cataclysm.Cataclysm;
 import org.cataclysm.game.player.CataclysmPlayer;
@@ -11,7 +12,13 @@ import org.cataclysm.global.utils.chat.ChatMessenger;
 import org.cataclysm.global.utils.text.font.TinyCaps;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CataclysmTablist {
+    //CACHE YOUR FUCKING DATA BRO!!
+    private static final Map<Player, String> playerTeamCache = new HashMap<>();
+
     protected static void updateWeek(Player player) {
         var header = "\n" + ChatMessenger.getCataclysmColor() + " Tʜᴇ Cᴀᴛᴀᴄʟʏꜱᴍ SMP \n" + ChatMessenger.getTextColor() + getWeek() + " \n";
         player.sendPlayerListHeader(MiniMessage.miniMessage().deserialize(ChatMessenger.getCataclysmColor() + header));
@@ -35,13 +42,25 @@ public class CataclysmTablist {
     }
 
     public static void organizePlayer(Player player) {
-        var data = CataclysmPlayer.getCataclysmPlayer(player).getData();
-        var role = new RoleManager(data).getRole();
+        Bukkit.getScheduler().runTaskLater(Cataclysm.getInstance(), () -> {
+            var data = CataclysmPlayer.getCataclysmPlayer(player).getData();
+            var role = new RoleManager(data).getRole();
 
-        if (role == null) return;
+            if (role == null) {
+                removePlayerFromTeam(player);
+                return;
+            }
 
-        TablistUtils.setScoreboardTeam(player, role.ordinal() + "-" + role.name());
-        updatePlayerName(player);
+            String teamName = role.ordinal() + "-" + role.name();
+            String currentTeam = playerTeamCache.get(player);
+
+            if (!teamName.equals(currentTeam)) {
+                TablistUtils.setScoreboardTeam(player, teamName);
+                playerTeamCache.put(player, teamName);
+            }
+
+            updatePlayerName(player);
+        }, 1L);
     }
 
     public static void updatePlayerName(Player player) {
@@ -55,4 +74,12 @@ public class CataclysmTablist {
                 .append(Component.text(" ")));
     }
 
+
+    public static void removePlayerFromTeam(Player player) {
+        String currentTeam = playerTeamCache.remove(player);
+        if (currentTeam != null) {
+            Bukkit.getConsoleSender().sendMessage("REMOVED PLAYER FROM SCOREBOARD TEAM");
+            TablistUtils.removePlayerFromScoreboardTeam(player);
+        }
+    }
 }

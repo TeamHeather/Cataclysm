@@ -12,19 +12,19 @@ import org.cataclysm.game.world.day.events.ChangeDayEvent;
 @Registrable
 public class TablistListener implements Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerJoin(PlayerJoinEvent event) {
         CataclysmTablist.organizePlayer(event.getPlayer());
         CataclysmTablist.updateWeek(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     private void onPlayerQuit(PlayerQuitEvent event) {
         CataclysmTablist.organizePlayer(event.getPlayer());
         CataclysmTablist.updateWeek(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     private void onChangeDay(ChangeDayEvent event) {
         for (var player : Bukkit.getOnlinePlayers()) CataclysmTablist.updateWeek(player);
     }
