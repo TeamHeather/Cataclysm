@@ -32,7 +32,6 @@ public class Mother extends RaidStructure {
     @Override
     public CataclysmArea getArea() {
         Location location = new Location(Dimensions.THE_END.createWorld(), 0, 53, 0);
-        if (!Cataclysm.isMainHost()) location = new Location(Dimensions.THE_END.createWorld(), 1331, 109 , 9125);
         return new CataclysmArea(location, 500);
     }
 

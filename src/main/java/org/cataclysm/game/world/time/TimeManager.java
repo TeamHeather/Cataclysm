@@ -36,5 +36,6 @@ public class TimeManager {
             Cataclysm.setTimeManager(timeManager);
             Cataclysm.setDay(timeManager.getDay());
         }
+        else Cataclysm.setTimeManager(new TimeManager(new TimeData()));
     }
 }

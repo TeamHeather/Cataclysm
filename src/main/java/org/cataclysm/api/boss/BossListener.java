@@ -24,8 +24,6 @@ import org.cataclysm.api.boss.events.BossChannelAbilityEvent;
 import org.cataclysm.api.boss.events.BossFightEndEvent;
 import org.cataclysm.api.item.ItemBuilder;
 import org.cataclysm.api.listener.registrable.Registrable;
-import org.cataclysm.game.events.pantheon.bosses.PantheonAbility;
-import org.cataclysm.game.events.pantheon.bosses.PantheonBoss;
 import org.cataclysm.game.events.raids.bosses.calamity_hydra.rage.RageAbility;
 import org.cataclysm.game.events.raids.bosses.pale_king.PaleKing;
 import org.cataclysm.global.utils.chat.ChatMessenger;
@@ -41,8 +39,6 @@ public class BossListener implements Listener {
     @EventHandler
     public void onBossFightEnd(BossFightEndEvent event) {
         CataclysmBoss boss = event.getBoss();
-
-        if (boss instanceof PantheonBoss) return;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 0.9F);
@@ -126,9 +122,6 @@ public class BossListener implements Listener {
     @EventHandler
     private void onBossCastAbility(BossCastAbilityEvent event) {
         var ability = event.getAbility();
-
-        if (ability instanceof PantheonAbility) return;
-
         var boss = event.getBoss();
 
         if (ability.isBoosted()) {
@@ -145,8 +138,6 @@ public class BossListener implements Listener {
         if (!boss.getAbilityVisibility()) return;
 
         var ability = event.getAbility().clone();
-
-        if (ability instanceof PantheonAbility) return;
 
         if (!ability.isBroadcast()) return;
         if (ability instanceof RageAbility rageAbility && !rageAbility.isBroadcast()) return;

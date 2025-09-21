@@ -45,7 +45,12 @@ import org.cataclysm.game.effect.MortemEffect;
 import org.cataclysm.game.effect.PaleCorrosionEffect;
 import org.cataclysm.game.items.CataclysmItems;
 import org.cataclysm.game.items.ItemFamily;
+import org.cataclysm.game.player.data.PlayerData;
 import org.cataclysm.game.player.data.PlayerLoader;
+import org.cataclysm.game.player.tag.role.RoleManager;
+import org.cataclysm.game.player.tag.role.RoleType;
+import org.cataclysm.game.player.tag.team.TeamManager;
+import org.cataclysm.game.player.tag.team.Teams;
 import org.cataclysm.game.world.Dimensions;
 import org.cataclysm.global.utils.chat.ChatMessenger;
 import org.cataclysm.global.utils.text.font.TinyCaps;
@@ -160,8 +165,9 @@ public class PlayerListener implements Listener {
         cataclysmPlayer.getTotemManager().updateStatistic();
         cataclysmPlayer.getCooldownManager().restore();
 
-        //ItemRestorer restorer = new ItemRestorer(player.getInventory());
-        //restorer.check();
+        PlayerData data = cataclysmPlayer.getData();
+        if (data.getTeam() == null || data.getTeam().isEmpty()) new TeamManager(data).setTeam(Teams.NONE);
+        if (data.getRoleType() == null || data.getRoleType().isEmpty()) new RoleManager(data).setRole(RoleType.MEMBER);
 
         event.joinMessage(
                 MiniMessage.miniMessage().deserialize("<#6EEC6C>[<#7FEE7D>+<#6EEC6C>]")

@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.cataclysm.api.boss.CataclysmBoss;
-import org.cataclysm.game.events.finale.CataclysmFinale;
 import org.cataclysm.game.events.limited.EventManager;
 import org.cataclysm.game.events.limited.data.EventLoader;
 import org.cataclysm.api.item.crafting.CataclysmRecipes;
@@ -21,14 +20,9 @@ import org.cataclysm.api.mob.MobUtils;
 import org.cataclysm.api.mob.store.MobStore;
 import org.cataclysm.api.structure.StructureManager;
 import org.cataclysm.api.structure.data.StructureLoader;
-import org.cataclysm.discord.DiscordConnection;
-import org.cataclysm.discord.DiscordListener;
 import org.cataclysm.game.GameManager;
 import org.cataclysm.game.data.GameDataManager;
-import org.cataclysm.game.events.pantheon.PantheonOfCataclysm;
-import org.cataclysm.game.events.pantheon.cmd.ProfileCommand;
 import org.cataclysm.game.mob.task.MobTask;
-import org.cataclysm.game.events.pantheon.cmd.PantheonCommand;
 import org.cataclysm.game.player.CataclysmPlayer;
 import org.cataclysm.game.player.PlayerTask;
 import org.cataclysm.game.player.data.PlayerLoader;
@@ -53,28 +47,24 @@ public final class Cataclysm extends JavaPlugin {
     private static final @Getter Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
     private static final @Getter HashMap<String, CataclysmPlayer> cataclysmPlayers = new HashMap<>();
 
-    private static @Getter @Setter PantheonOfCataclysm pantheon;
-    private static @Getter @Setter CataclysmFinale finale;
-
     private static @Getter @Setter TimeManager timeManager;
     private static @Getter @Setter int day;
 
     private static @Getter Cataclysm instance;
     private static @Getter MobStore store;
 
-    private static @Getter @Setter @Nullable CataclysmBoss boss;
-    private static @Getter @Setter DiscordConnection discord;
-    private static @Getter @Setter DeathSequence deathSequence;
-    private static @Getter @Setter GameManager gameManager;
-    private static @Getter @Setter EventManager eventManager;
     private static @Getter @Setter Ragnarok ragnarok;
+    private static @Getter @Setter @Nullable CataclysmBoss boss;
+
+    private static @Getter @Setter DeathSequence deathSequence;
+    private static @Getter @Setter EventManager eventManager;
+    private static @Getter @Setter GameManager gameManager;
 
     @Override
     public void onEnable() {
         CataclysmMob.initializeMobConstructors();
         instance = this;
         store = new MobStore();
-        if (isMainHost()) discord = new DiscordConnection();
         try {
             StructureLoader.loadAll();
             PlayerLoader.loadAll();
@@ -97,14 +87,6 @@ public final class Cataclysm extends JavaPlugin {
         paperCommandManager.registerCommand(new StaffCommand());
         paperCommandManager.registerCommand(new PodiumCommand());
         paperCommandManager.registerCommand(new RaidCommand());
-        //Pantheon Commands
-        paperCommandManager.registerCommand(new PantheonCommand());
-        paperCommandManager.registerCommand(new ProfileCommand());
-        paperCommandManager.registerCommand(new FinaleCommand());
-
-        if (isMainHost()) {
-            Bukkit.getPluginManager().registerEvents(new DiscordListener(), this);
-        }
 
         RegistrableUtils.registerListeners();
         CataclysmRecipes.updateRecipes();
@@ -114,8 +96,8 @@ public final class Cataclysm extends JavaPlugin {
 
         for (RaidStructures raidStructures : RaidStructures.values()) {
             Listener listener = raidStructures.getStructure().getListener();
-            if (listener == null) continue;
-            Bukkit.getPluginManager().registerEvents(listener, Cataclysm.getInstance());
+            if (listener != null)
+                Bukkit.getPluginManager().registerEvents(listener, Cataclysm.getInstance());
         }
 
         CataclysmGenerator.setUp();
@@ -126,13 +108,12 @@ public final class Cataclysm extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage(" | (__ / _ \\| |/ _ \\ (__| |_\\ V /\\__ \\ |\\/| |");
         Bukkit.getConsoleSender().sendMessage("  \\___/_/ \\_\\_/_/ \\_\\___|____|_| |___/_|  |_|");
         Bukkit.getConsoleSender().sendMessage("");
+
         Bukkit.getConsoleSender().sendMessage("Cataclysm has been succesfully enabled.");
     }
 
     @Override
     public void onDisable() {
-        if (pantheon != null) pantheon.getConfigurator().save();
-
         if (ragnarok != null) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 ragnarok.getBossBar().removeViewer(player);
@@ -160,17 +141,5 @@ public final class Cataclysm extends JavaPlugin {
         tasks.forEach((uuid, task) -> Bukkit.getScheduler().cancelTask(task));
         tasks.clear();
         Bukkit.getConsoleSender().sendMessage("Cataclysm has been succesfully disabled.");
-    }
-
-    public static void debug(String info) {
-        Bukkit.getConsoleSender().sendMessage("[Cataclysm Debug] " + info);
-    }
-
-    /**
-     * Verifies if the server is the main Cataclysm's host or the BETA.
-     * @return If the server is Cataclysm's main host.
-     */
-    public static boolean isMainHost() {
-        return Bukkit.getServer().getMaxPlayers() >= 135;
     }
 }

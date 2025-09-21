@@ -1,11 +1,9 @@
 package org.cataclysm.api.mob.store;
 
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.HandlerList;
-import org.cataclysm.Cataclysm;
 import org.cataclysm.api.mob.CataclysmMob;
 import org.cataclysm.api.mob.MobLoader;
 import org.cataclysm.global.utils.security.CataclysmToken;
@@ -51,9 +49,6 @@ public class MobStore {
 
             var file = MobLoader.getMobFile(structure, livingEntity);
             if (file == null) return;
-
-            if (!file.delete()) Cataclysm.debug("Couldn't delete mob file: " + file.getName());
-
             if (mob.getListener() != null) HandlerList.unregisterAll(mob.getListener());
 
             livingEntity.remove();

@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.cataclysm.game.player.mechanics.upgrade.Upgrades;
+import org.cataclysm.game.player.tag.role.RoleType;
+import org.cataclysm.game.player.tag.team.Teams;
 import org.cataclysm.server.chat.ChatMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +34,8 @@ public class PlayerData {
         this.upgrades = this.getDefaultMap();
         this.cooldowns = new HashMap<>();
         this.chatMode = ChatMode.GLOBAL;
+        this.team = Teams.NONE.name();
+        this.roleType = RoleType.MEMBER.name();
     }
 
     public PlayerData(@NotNull PlayerData data) {

@@ -20,7 +20,6 @@ public class CataclysmTablist {
 
     private static @NotNull String getSubtitle(int day) {
         var week = (day / 7) + 1;
-
         var text = "";
         switch (week) {
             case 1 -> text = "primera semana";
@@ -29,10 +28,6 @@ public class CataclysmTablist {
             case 4 -> text = "cuarta semana";
             case 5 -> text = "quinta semana";
         }
-
-        if (Cataclysm.getPantheon() != null) text = "panteón de cataclysm";
-        if (day == 35) text = "finale";
-
         return TinyCaps.tinyCaps(text);
     }
 

@@ -12,8 +12,6 @@ public class MotdListener implements Listener {
 
     @EventHandler
     private void onServerListPing(ServerListPingEvent event) {
-        if (!Cataclysm.isMainHost()) return;
-
         var topper = "              <#cd953f><obf>||</obf> <#a53131><b>Tʜᴇ Cᴀᴛᴀᴄʟʏꜱᴍ SMP</b> <#cd953f><obf>||</obf>";
         var footer = "          <#bcbcbc>Día ##/35 <#cd953f>• <#bcbcbc>#CataclysmSMP <#cd953f>• <#bcbcbc>1.21.5";
 
