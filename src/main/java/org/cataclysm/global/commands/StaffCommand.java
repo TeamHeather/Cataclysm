@@ -13,17 +13,22 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.cataclysm.Cataclysm;
+import org.cataclysm.api.boss.CataclysmBoss;
 import org.cataclysm.api.data.PersistentData;
 import org.cataclysm.api.item.ItemCatalogue;
 import org.cataclysm.api.mob.CataclysmMob;
 import org.cataclysm.api.structure.CataclysmStructure;
 import org.cataclysm.api.structure.data.StructureLoader;
+import org.cataclysm.api.structure.raid.RaidStructure;
 import org.cataclysm.game.block.arcane.table.ArcaneTableMob;
 import org.cataclysm.game.events.limited.CataclysmEvents;
 import org.cataclysm.game.effect.ImmunityEffect;
 import org.cataclysm.game.effect.MortemEffect;
 import org.cataclysm.game.effect.PaleCorrosionEffect;
+import org.cataclysm.game.events.raids.bosses.Bosses;
+import org.cataclysm.game.events.raids.structures.RaidStructures;
 import org.cataclysm.game.items.CataclysmItems;
 import org.cataclysm.game.mob.custom.block.CalamityVault;
 import org.cataclysm.game.player.CataclysmPlayer;
@@ -48,58 +53,49 @@ import java.util.UUID;
 @CommandPermission("admin.perms")
 public class StaffCommand extends BaseCommand {
 
-    @Subcommand("palevoid entrance")
-    @CommandCompletion("@players true|false")
-    private void palevoidEntrance(Player player, boolean entrance) {
-        PersistentData.set(player, "HAS-ENTERED-PALE-VOID", PersistentDataType.BOOLEAN, entrance);
-        ChatMessenger.sendStaffMessage(player, "Palevoid entrance set to " + entrance);
-    }
+    @Subcommand("boss start")
+    @CommandCompletion(" true|false")
+    private void start(CommandSender commandSender, Bosses boss, boolean pasteArena) {
+        if (!(commandSender instanceof Player player)) return;
 
-    @Subcommand("mortem all")
-    private void mortem() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.addPotionEffect(new PotionEffect(MortemEffect.EFFECT_TYPE, PotionEffect.INFINITE_DURATION, 0));
-            player.showTitle(
-                    Title.title(
-                            MiniMessage.miniMessage().deserialize("<gold><bold>MORTEM</bold></gold>"),
-                            MiniMessage.miniMessage().deserialize("<yellow><italic>Que buen momento para un <gold><bold>POSTMORTAL</bold></gold></italic></yellow>"),
-                            Title.Times.times(Duration.ofSeconds(1), Duration.ofSeconds(5), Duration.ofSeconds(2))
-                    )
-            );
-            player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1F, .75F);
+        if (pasteArena) {
+            RaidStructures structure = switch (boss) {
+                case TWISTED_WARDEN -> RaidStructures.TWISTED_NEST;
+                case CALAMITY_HYDRA -> RaidStructures.HYDRAS_DUNGEON;
+                case PALE_KING -> RaidStructures.PALE_PALACE;
+            };
+            RaidStructure instance = structure.getStructure();
+            instance.pasteStructure(false);
+            ChatMessenger.sendStaffMessage(player, "Se ha pegado la arena " + instance.getName().toUpperCase() + ": ");
+            player.sendMessage(instance.getArea().toString());
         }
+
+        for (Player players : Bukkit.getOnlinePlayers()) {
+            players.teleport(boss.getInstance().getArena().center());
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 100, 0));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 100, 0));
+        }
+
+        ChatMessenger.sendStaffMessage(player, "El jefe iniciará en 5 segundos");
+        Bukkit.getScheduler().runTaskLater(Cataclysm.getInstance(), () -> {
+            CataclysmBoss manager = boss.getInstance();
+            manager.setController(player);
+            manager.startFight();
+        }, 100);
     }
 
-    @Subcommand("mortem")
-    private void mortem(CommandSender commandSender, String nickname) {
-        Player player = Bukkit.getPlayer(nickname);
-        if (player == null) return;
+    @Subcommand("boss stop")
+    private void stop(CommandSender commandSender) {
+        if (!(commandSender instanceof Player player)) return;
 
-        player.addPotionEffect(new PotionEffect(MortemEffect.EFFECT_TYPE, PotionEffect.INFINITE_DURATION, 0));
-        player.showTitle(
-                Title.title(
-                        MiniMessage.miniMessage().deserialize("<gold><bold>MORTEM</bold></gold>"),
-                        MiniMessage.miniMessage().deserialize("<yellow><italic>Que buen momento para un <gold><bold>POSTMORTAL</bold></gold></italic></yellow>"),
-                        Title.Times.times(Duration.ofSeconds(1), Duration.ofSeconds(5), Duration.ofSeconds(2))
-                )
-        );
-        player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1F, .75F);
-    }
+        CataclysmBoss manager = Cataclysm.getBoss();
+        if (manager == null) {
+            ChatMessenger.sendStaffMessage(player, "No hay un jefe activo.");
+            return;
+        }
 
-    @Subcommand("corrosion")
-    private void corrosion(CommandSender commandSender, String nickname) {
-        Player player = Bukkit.getPlayer(nickname);
-        if (player == null) return;
-
-        player.addPotionEffect(new PotionEffect(PaleCorrosionEffect.EFFECT_TYPE, PotionEffect.INFINITE_DURATION, 0));
-        player.showTitle(
-                Title.title(
-                        MiniMessage.miniMessage().deserialize("<gradient:#B0E0E6:white><bold>PALE CORROSION</bold></gradient>"),
-                        MiniMessage.miniMessage().deserialize("<gray><italic>Pallum corruptus es!</italic></gray>"),
-                        Title.Times.times(Duration.ofSeconds(1), Duration.ofSeconds(5), Duration.ofSeconds(2))
-                )
-        );
-        player.playSound(player.getLocation(), Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1F, .75F);
+        manager.stopFight();
+        ChatMessenger.sendStaffMessage(player, "Jefe detenido.");
     }
 
     @Subcommand("event")
@@ -112,7 +108,7 @@ public class StaffCommand extends BaseCommand {
         }
     }
 
-    @Subcommand("role set")
+    @Subcommand("player role set")
     @CommandCompletion(" @players")
     private void roleSet(CommandSender commandSender, RoleType role, String username) {
         var player = Bukkit.getPlayer(username);
@@ -124,7 +120,7 @@ public class StaffCommand extends BaseCommand {
         CataclysmTablist.organizePlayer(player);
     }
 
-    @Subcommand("team join")
+    @Subcommand("player team join")
     @CommandCompletion(" @players")
     private void teamJoin(CommandSender commandSender, Teams teams, String username) {
         var player = Bukkit.getPlayer(username);
@@ -134,15 +130,6 @@ public class StaffCommand extends BaseCommand {
         var cataclysmPlayer = CataclysmPlayer.getCataclysmPlayer(player);
         new TeamManager(cataclysmPlayer.getData()).setTeam(teams);
         CataclysmTablist.organizePlayer(player);
-    }
-
-    @Subcommand("showCredits")
-    public void showCredits() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            // Show the end credits to each player
-            player.showWinScreen();
-            player.addPotionEffect(new PotionEffect(ImmunityEffect.EFFECT_TYPE, -1, 0));
-        }
     }
 
     @Subcommand("teleport")
@@ -434,7 +421,7 @@ public class StaffCommand extends BaseCommand {
         ChatMessenger.sendStaffMessage(sender, "Set upgrade " + upgrade.name() + "for player " + nickname);
     }
 
-    @Subcommand("player incursionreward set")
+    @Subcommand("player incursion reward set")
     @CommandCompletion("@players <value>")
     private void playerIncursionRewardSet(String nickname, int value) {
         var player = Bukkit.getPlayer(nickname);
@@ -442,7 +429,7 @@ public class StaffCommand extends BaseCommand {
         PersistentData.set(player, "COMPLETED_INCURSIONS", PersistentDataType.INTEGER, value);
     }
 
-    @Subcommand("player incursionreward get")
+    @Subcommand("player incursion reward get")
     @CommandCompletion("@players")
     private void playerIncursionRewardGet(CommandSender commandSender, String nickname) {
         if (!(commandSender instanceof Player sender)) return;
@@ -453,7 +440,7 @@ public class StaffCommand extends BaseCommand {
         ChatMessenger.sendStaffMessage(sender, "Completed incursions: " + completedIncursions);
     }
 
-    @Subcommand("player incursionhealth set")
+    @Subcommand("player incursion health set")
     @CommandCompletion("@players <incursionsPassed>")
     private void playerIncursionHealthSet(String nickname, int completedIncursions) {
         var player = Bukkit.getPlayer(nickname);
@@ -461,7 +448,7 @@ public class StaffCommand extends BaseCommand {
         PersistentData.set(player, "INCURSION_EXTRA_HEALTH", PersistentDataType.INTEGER, completedIncursions);
     }
 
-    @Subcommand("player incursionhealth get")
+    @Subcommand("player incursion health get")
     @CommandCompletion("@players <incursionsCompleted>")
     private void playerIncursionHealthGet(String nickname) {
         var player = Bukkit.getPlayer(nickname);
@@ -470,7 +457,7 @@ public class StaffCommand extends BaseCommand {
         ChatMessenger.sendStaffMessage(player, "Incursions with extra health reward completed: " + completedIncursions);
     }
 
-    @Subcommand("player noincursionhealth set")
+    @Subcommand("player noincursion health set")
     @CommandCompletion("@players <uncompletedIncursions>")
     private void playerNoIncursionHealthSet(String nickname, int notCompletedIncursions) {
         var player = Bukkit.getPlayer(nickname);
@@ -478,7 +465,7 @@ public class StaffCommand extends BaseCommand {
         PersistentData.set(player, "NO_INCURSION_EXTRA_HEALTH", PersistentDataType.INTEGER, notCompletedIncursions);
     }
 
-    @Subcommand("player noincursionhealth get")
+    @Subcommand("player noincursion health get")
     @CommandCompletion("@players <notCompletedIncursions>")
     private void playerNoIncursionHealthGet(String nickname) {
         var player = Bukkit.getPlayer(nickname);
@@ -533,8 +520,6 @@ public class StaffCommand extends BaseCommand {
         new RagnarokManager(ragnarok).stop();
     }
 
-
-
     @Subcommand("deathcount")
     private void deathCount(CommandSender commandSender, @Optional Integer deathCount) {
         if (!(commandSender instanceof Player player)) return;
@@ -548,11 +533,5 @@ public class StaffCommand extends BaseCommand {
     private void setDay(CommandSender commandSender, int day) {
         if (!(commandSender instanceof Player)) return;
         Cataclysm.getTimeManager().setDay(day);
-    }
-
-    @Subcommand("damagetwisted")
-    private void damage(CommandSender commandSender) {
-        if (!(commandSender instanceof Player player)) return;
-        TwistedWarden.damagePlayersSeeing(player);
     }
 }

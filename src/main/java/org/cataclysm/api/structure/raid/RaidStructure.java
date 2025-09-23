@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.Listener;
 import org.cataclysm.api.boss.CataclysmArea;
+import org.cataclysm.api.structure.schematic.SchematicLoader;
 
 @Getter
 public abstract class RaidStructure {
@@ -14,7 +15,10 @@ public abstract class RaidStructure {
         this.name = name;
     }
 
-    public abstract CataclysmArea getArea();
+    public void pasteStructure(boolean ignoreAir) {
+        SchematicLoader loader = new SchematicLoader("schematics/" + this.name + ".schem");
+        loader.pasteSchematic(getArea().center().clone().add(0, -1, 0), ignoreAir);
+    }
 
-    public abstract CataclysmArea getBossArena();
+    public abstract CataclysmArea getArea();
 }

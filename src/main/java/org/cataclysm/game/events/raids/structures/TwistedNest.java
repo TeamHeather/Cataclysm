@@ -1,4 +1,4 @@
-package org.cataclysm.game.events.raids.structures.twisted_nest;
+package org.cataclysm.game.events.raids.structures;
 
 import org.bukkit.Location;
 import org.cataclysm.api.boss.CataclysmArea;
@@ -7,16 +7,11 @@ import org.cataclysm.game.world.Dimensions;
 
 public class TwistedNest extends RaidStructure {
     public TwistedNest() {
-        super("TWISTED_NEST");
+        super("TWISTED_CITY");
     }
 
     @Override
     public CataclysmArea getArea() {
-        return null;
-    }
-
-    @Override
-    public CataclysmArea getBossArena() {
         return new CataclysmArea(new Location(Dimensions.OVERWORLD.createWorld(), 1344.5, -58, 9784), 70);
     }
 }

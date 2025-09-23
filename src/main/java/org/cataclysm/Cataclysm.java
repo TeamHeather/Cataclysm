@@ -86,7 +86,6 @@ public final class Cataclysm extends JavaPlugin {
         paperCommandManager.registerCommand(new CataclysmCommand());
         paperCommandManager.registerCommand(new StaffCommand());
         paperCommandManager.registerCommand(new PodiumCommand());
-        paperCommandManager.registerCommand(new RaidCommand());
 
         RegistrableUtils.registerListeners();
         CataclysmRecipes.updateRecipes();

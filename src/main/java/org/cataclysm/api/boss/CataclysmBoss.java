@@ -29,7 +29,6 @@ import org.cataclysm.api.boss.events.BossFightEndEvent;
 import org.cataclysm.api.boss.events.BossFightStartEvent;
 import org.cataclysm.api.data.PersistentData;
 import org.cataclysm.api.Soundtrack;
-import org.cataclysm.game.events.raids.bosses.twisted_warden.keys.TwistedWardenKeys;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -194,11 +193,11 @@ public abstract class CataclysmBoss implements Cloneable {
     }
 
     public void setBoosted(boolean boosted) {
-        PersistentData.set(this.controller, TwistedWardenKeys.BOOSTED_KEY.getKey(), PersistentDataType.BOOLEAN, boosted);
+        PersistentData.set(this.controller, "BOOSTED", PersistentDataType.BOOLEAN, boosted);
     }
 
     public boolean isBoosted() {
-        return Boolean.TRUE.equals(PersistentData.get(this.controller, TwistedWardenKeys.BOOSTED_KEY.getKey(), PersistentDataType.BOOLEAN));
+        return Boolean.TRUE.equals(PersistentData.get(this.controller, "BOOSTED", PersistentDataType.BOOLEAN));
     }
 
     public void setAbilityVisibility(boolean show) {
@@ -256,6 +255,13 @@ public abstract class CataclysmBoss implements Cloneable {
         if (DisguiseAPI.getDisguise(controller) != null) {
             DisguiseAPI.getDisguise(controller).removeDisguise();
         }
+    }
+
+    public void damage(LivingEntity livingEntity, double amount) {
+        if (livingEntity.equals(getController())) return;
+        livingEntity.damage(amount);
+        if (livingEntity.getNoDamageTicks() == 0)
+            livingEntity.setNoDamageTicks(25);
     }
 
     public void updateModel(EntityType type, String name) {

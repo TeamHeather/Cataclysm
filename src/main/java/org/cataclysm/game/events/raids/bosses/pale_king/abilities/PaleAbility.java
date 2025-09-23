@@ -2,6 +2,7 @@ package org.cataclysm.game.events.raids.bosses.pale_king.abilities;
 
 import org.bukkit.Material;
 import org.cataclysm.api.boss.ability.Ability;
+import org.cataclysm.game.events.raids.bosses.BossAbility;
 import org.cataclysm.game.events.raids.bosses.pale_king.PaleKing;
 
 public abstract class PaleAbility extends Ability {

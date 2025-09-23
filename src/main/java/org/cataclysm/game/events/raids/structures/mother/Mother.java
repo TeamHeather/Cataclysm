@@ -35,11 +35,6 @@ public class Mother extends RaidStructure {
         return new CataclysmArea(location, 500);
     }
 
-    @Override
-    public CataclysmArea getBossArena() {
-        return new CataclysmArea(this.getArea().center().clone().add(0, 64, 0), 170);
-    }
-
     static class MotherListener implements Listener {
         private final Mother mother;
 
